@@ -1,4 +1,6 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000";
+// Trim trailing slashes so request paths like `/api/convert` don't yield a double
+// slash (`host//api/convert`), which the backend treats as a different, 404 route.
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000").replace(/\/+$/, "");
 
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
