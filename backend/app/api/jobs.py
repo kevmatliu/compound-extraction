@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response
 
 from app.core.dependencies import get_job_store
 from app.services.job_store import COMPLETED, JobStore
+from app.services.zip_export import build_job_zip
 
 router = APIRouter(prefix="/api/jobs")
 
@@ -65,4 +66,19 @@ def download_csv(job_id: str, store: JobStore = Depends(get_job_store)) -> Respo
         content=job.csv_text,
         media_type="text/csv",
         headers={"Content-Disposition": 'attachment; filename="compounds.csv"'},
+    )
+
+
+@router.get("/{job_id}/download.zip")
+def download_zip(job_id: str, store: JobStore = Depends(get_job_store)) -> Response:
+    """Download a ZIP of the CSV plus per-compound depiction and crop PNGs."""
+    job = store.get(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if job.status != COMPLETED or job.csv_text is None:
+        raise HTTPException(status_code=409, detail=f"Job is not complete (status: {job.status})")
+    return Response(
+        content=build_job_zip(job),
+        media_type="application/zip",
+        headers={"Content-Disposition": 'attachment; filename="compounds.zip"'},
     )

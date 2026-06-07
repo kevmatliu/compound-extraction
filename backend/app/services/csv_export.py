@@ -12,9 +12,10 @@ def rows_to_csv(rows: Sequence[CompoundRow]) -> str:
     buffer = io.StringIO()
     writer = csv.writer(buffer)
     writer.writerow(CSV_COLUMNS)
-    for row in rows:
+    for index, row in enumerate(rows):
         writer.writerow(
             [
+                index,
                 row.source_file,
                 row.location,
                 row.compound_index,

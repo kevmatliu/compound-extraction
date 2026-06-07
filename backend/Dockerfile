@@ -3,9 +3,9 @@
 # the port declared as `app_port` in README.md (7860 here).
 FROM python:3.10-slim
 
-# OpenCV (cv2) needs these shared libraries at runtime.
+# OpenCV (cv2) needs libgl1/libglib; RDKit's Cairo PNG rendering needs the cairo/pango libs.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgl1 libglib2.0-0 \
+    libgl1 libglib2.0-0 libcairo2 libpango-1.0-0 libpangocairo-1.0-0 \
  && rm -rf /var/lib/apt/lists/*
 
 # Match HF Spaces' runtime user so files we create are writable there.
@@ -28,8 +28,8 @@ RUN pip install --no-cache-dir --upgrade pip \
  && pip install --no-cache-dir -r requirements.txt
 
 # Bake the ~1GB MolScribe checkpoint into the image so cold starts don't redownload.
-# (MolScribe pulls in huggingface_hub, so it is already available here.)
-RUN python -c "from huggingface_hub import hf_hub_download; hf_hub_download(repo_id='yujieq/MolScribe', filename='swin_base_char_aux_1m680k.pth', local_dir='models/molscribe')"
+RUN pip install --no-cache-dir "huggingface_hub==0.24.6" \
+ && python -c "from huggingface_hub import hf_hub_download; hf_hub_download(repo_id='yujieq/MolScribe', filename='swin_base_char_aux_1m680k.pth', local_dir='models/molscribe')"
 
 COPY --chown=user app ./app
 

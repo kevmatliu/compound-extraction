@@ -386,3 +386,82 @@ code {
   background: var(--neutral-soft);
   color: var(--muted);
 }
+
+/* ---- two-column workspace (left: convert/results, right: sticky editor) ---- */
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(440px, 560px);
+  gap: 32px;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+  align-items: start;
+}
+
+.workspace-left {
+  min-width: 0; /* let grid children shrink instead of overflowing */
+}
+
+.workspace-right {
+  position: sticky;
+  top: 24px;
+  align-self: start;
+}
+
+.editor-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 12px;
+  box-shadow: var(--shadow);
+}
+
+.editor-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 2px 4px;
+}
+
+.editor-title {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.editor-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.ketcher-frame-wrap {
+  position: relative;
+  min-height: 520px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+/* result tile action buttons + downloads */
+.smiles-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.results-downloads {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+@media (max-width: 1024px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+  .workspace-right {
+    position: static;
+  }
+}

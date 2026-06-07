@@ -7,6 +7,12 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   base: process.env.VITE_BASE ?? "/",
+  // Ketcher references `global` and `process.env` at runtime. Map global -> window
+  // and stub process.env (empty, to avoid inlining the host environment).
+  define: {
+    "process.env": {},
+    global: "window"
+  },
   server: {
     port: 5173
   }

@@ -4,8 +4,10 @@ from dataclasses import dataclass
 from typing import Optional
 
 
-# Column order of the exported CSV is exactly the field order below.
+# Column order of the exported CSV is exactly the field order below. `id` is the
+# result's index in the job, matching the PNG filenames in the ZIP (images/<id>.png).
 CSV_COLUMNS = [
+    "id",
     "source_file",
     "location",
     "compound_index",

@@ -3,6 +3,7 @@ import { absoluteUrl, type CompoundResultItem } from "../api/jobs";
 
 interface CompoundCardProps {
   item: CompoundResultItem;
+  onLoadToEditor?: (smiles: string) => void;
 }
 
 // Human-readable label + visual tone for each backend validation status.
@@ -14,7 +15,7 @@ const STATUS_META: Record<string, { label: string; tone: string }> = {
   unprocessed: { label: "Skipped", tone: "neutral" },
 };
 
-export function CompoundCard({ item }: CompoundCardProps) {
+export function CompoundCard({ item, onLoadToEditor }: CompoundCardProps) {
   const [copied, setCopied] = useState(false);
   const smiles = item.canonical_smiles ?? item.raw_smiles;
   const status = STATUS_META[item.validation_status] ?? {
@@ -48,9 +49,16 @@ export function CompoundCard({ item }: CompoundCardProps) {
         {smiles ? (
           <div className="smiles-row">
             <code className="smiles-text">{smiles}</code>
-            <button type="button" className="copy-btn" onClick={copy}>
-              {copied ? "Copied" : "Copy"}
-            </button>
+            <div className="smiles-actions">
+              <button type="button" className="copy-btn" onClick={copy}>
+                {copied ? "Copied" : "Copy"}
+              </button>
+              {onLoadToEditor && (
+                <button type="button" className="copy-btn" onClick={() => onLoadToEditor(smiles)}>
+                  Edit ↗
+                </button>
+              )}
+            </div>
           </div>
         ) : (
           <p className="compound-error">{item.error ?? "No SMILES produced"}</p>

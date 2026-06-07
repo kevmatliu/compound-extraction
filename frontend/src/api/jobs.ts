@@ -47,3 +47,8 @@ export function absoluteUrl(path: string): string {
 export function downloadCsvUrl(jobId: string): string {
   return `${API_BASE_URL}/api/jobs/${jobId}/download`;
 }
+
+/** Direct URL to the ZIP (CSV + per-compound depiction/crop PNGs) for a completed job. */
+export function downloadZipUrl(jobId: string): string {
+  return `${API_BASE_URL}/api/jobs/${jobId}/download.zip`;
+}
