@@ -6,8 +6,8 @@ interface DropzoneProps {
   disabled?: boolean;
 }
 
-const ACCEPT = ".pdf,.png,.jpg,.jpeg,.pptx";
-const ACCEPTED_EXT = ["pdf", "png", "jpg", "jpeg", "pptx"];
+const ACCEPT = ".pdf,.png,.jpg,.jpeg,.heic,.heif,.pptx";
+const ACCEPTED_EXT = ["pdf", "png", "jpg", "jpeg", "heic", "heif", "pptx"];
 
 function isAccepted(file: File): boolean {
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
@@ -74,7 +74,7 @@ export function Dropzone({ files, onChange, disabled }: DropzoneProps) {
           ⬆
         </div>
         <p className="dropzone-title">Drag &amp; drop files here</p>
-        <p className="dropzone-hint">or click to browse · PNG, JPG, PDF, PPTX</p>
+        <p className="dropzone-hint">or click to browse · PNG, JPG, HEIC, PDF, PPTX</p>
       </div>
 
       {files.length > 0 && (

@@ -30,13 +30,16 @@ def dispatch_file(
         patent = ExtractionService.extract_candidate_compounds(data, patent_id="upload", tuning=tuning)
         return [(c.image_bytes, f"page {c.page}") for c in patent.get_compounds()]
 
-    if ext in {".png", ".jpg", ".jpeg"}:
-        compounds = ExtractionService.detect_in_image_bytes(data, tuning=tuning)
+    if ext in {".png", ".jpg", ".jpeg", ".heic", ".heif"}:
+        # HEIC/HEIF (e.g. iPhone photos) can't be decoded by OpenCV, so normalize to
+        # PNG bytes first; PNG/JPG pass through unchanged.
+        image_data = _heic_to_png(data) if ext in {".heic", ".heif"} else data
+        compounds = ExtractionService.detect_in_image_bytes(image_data, tuning=tuning)
         # Detection is tuned for multi-structure pages; a clean single-structure
         # image may yield nothing. Fall back to the whole image as one candidate so
         # such inputs aren't silently dropped.
         if not compounds:
-            return [(data, "image")]
+            return [(image_data, "image")]
         return [(c.image_bytes, "image") for c in compounds]
 
     if ext == ".pptx":
@@ -47,6 +50,22 @@ def dispatch_file(
         raise ValueError("Legacy .ppt is not supported; please export to .pptx")
 
     raise ValueError(f"Unsupported file type: {ext or '(none)'}")
+
+
+def _heic_to_png(data: bytes) -> bytes:
+    """Decode HEIC/HEIF bytes and re-encode as PNG so the rest of the pipeline
+    (OpenCV detection, MolScribe) can read them."""
+    try:
+        import pillow_heif
+        from PIL import Image
+    except ImportError as exc:  # pragma: no cover - dependency guard
+        raise RuntimeError(f"pillow-heif is required for HEIC files: {exc}") from exc
+
+    pillow_heif.register_heif_opener()  # idempotent: teaches Pillow to open HEIF
+    image = Image.open(io.BytesIO(data)).convert("RGB")
+    out = io.BytesIO()
+    image.save(out, format="PNG")
+    return out.getvalue()
 
 
 def _from_pptx(data: bytes, tuning: Optional[ExtractionTuning]) -> list[Candidate]:
