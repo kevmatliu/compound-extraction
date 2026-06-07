@@ -13,6 +13,16 @@ export default defineConfig({
     "process.env": {},
     global: "window"
   },
+  // Ketcher's packages mix ESM and CommonJS. Pre-bundle them in dev, and let the
+  // build's CommonJS plugin rewrite `require(...)` found inside ES modules — without
+  // this, stray `require` calls survive into the bundle and throw
+  // "require is not defined" at runtime (blanking the page).
+  optimizeDeps: {
+    include: ["ketcher-core", "ketcher-react", "ketcher-standalone"]
+  },
+  build: {
+    commonjsOptions: { transformMixedEsModules: true }
+  },
   server: {
     port: 5173
   }
