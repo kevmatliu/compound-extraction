@@ -1,0 +1,20 @@
+name: Keep HF Space warm
+
+# Pings the backend's health endpoint on a schedule so the free Hugging Face Space
+# doesn't go idle. Because /api/health calls is_ready() (which loads MolScribe), this
+# also keeps the model resident in RAM, avoiding a cold-start load on the first real
+# conversion.
+on:
+  schedule:
+    - cron: "*/15 * * * *" # every 15 minutes (GitHub may delay under load; fine here)
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping backend health
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 180 \
+            https://kevmatliu-compound-extraction.hf.space/api/health)
+          echo "health status: $code"
