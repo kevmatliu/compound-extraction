@@ -1,0 +1,15 @@
+# Python
+backend/.venv/
+__pycache__/
+*.pyc
+
+# Local config & generated scratch
+backend/.env
+backend/tmp/
+
+# Model weights (downloaded by start_local.sh)
+backend/models/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
