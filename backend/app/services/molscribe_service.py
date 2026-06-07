@@ -6,6 +6,36 @@ from typing import Any, Optional
 from app.core.runtime_env import configure_model_runtime_env
 
 
+def _patch_molscribe_multiprocessing() -> None:
+    """Make MolScribe's SMILES post-processing run serially instead of forking a pool.
+
+    MolScribe's ``convert_graph_to_smiles`` spawns ``multiprocessing.Pool(16)`` on
+    every prediction to run lightweight RDKit work. On a small CPU box (e.g. a 2-vCPU
+    Hugging Face Space) forking 16 children from the ~1GB model process — once per
+    image — causes heavy memory thrash and what looks like a hang (minutes per image).
+    For our batch sizes (a handful of structures) a serial loop is far faster and
+    forks nothing. We rebind the name used inside ``interface.predict_images``.
+    """
+    import numpy as np
+    from molscribe import chemistry, interface
+
+    def serial_convert_graph_to_smiles(coords, symbols, edges, images=None, num_workers=1):
+        if images is None:
+            results = [
+                chemistry._convert_graph_to_smiles(c, s, e)
+                for c, s, e in zip(coords, symbols, edges)
+            ]
+        else:
+            results = [
+                chemistry._convert_graph_to_smiles(c, s, e, im)
+                for c, s, e, im in zip(coords, symbols, edges, images)
+            ]
+        smiles_list, molblock_list, success = zip(*results)
+        return smiles_list, molblock_list, float(np.mean(success))
+
+    interface.convert_graph_to_smiles = serial_convert_graph_to_smiles
+
+
 class MolScribeService:
     name = "molscribe"
 
@@ -37,6 +67,7 @@ class MolScribeService:
         except Exception as exc:
             raise RuntimeError(f"Failed to import MolScribe: {exc}") from exc
 
+        _patch_molscribe_multiprocessing()
         self._predictor = MolScribe(str(self.model_path), device=self.device)
         return self._predictor
 
